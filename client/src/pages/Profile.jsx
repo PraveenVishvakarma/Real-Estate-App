@@ -5,6 +5,8 @@ import { useRef } from 'react';
 import {getDownloadURL, getStorage, uploadBytesResumable} from 'firebase/storage';
 import { app } from '../firebase';
 import { ref } from 'firebase/storage';
+import {  useDispatch } from 'react-redux';
+import { updateError, updateStart, updateSuccess } from '../redux/user/userSlice';
 
 
 
@@ -15,8 +17,9 @@ export default function Profile() {
   const [filePer, setFilePer]=useState(0);
   const [fileUploadError, setFileUploadError]=useState(false);
   const [formData, setFormData]=useState({});
-  console.log(formData);
-  console.log(fileUploadError);
+  const dispatch=useDispatch();
+  const[successUpdate, setSuccessUpdate]=useState(false);
+
   //firebase storage
       //allow read;
       //allow write: if 
@@ -49,11 +52,37 @@ export default function Profile() {
        }
     )
   }
+
+  const handleChange=(e)=>{
+     setFormData({...formData, [e.target.id]:e.target.value});
+  }
+
+  const handleSubmit=async (e)=>{
+    e.preventDefault();
+    try{
+      dispatch(updateStart());
+    const res= await fetch(`/api/user/update/${currentUser._id}`,{
+      method:"POST",
+      headers:{
+      "Content-Type":"application/json"
+      },
+      body:JSON.stringify(formData),
+    });
+    const data=await res.json();
+    if(data.success===false){
+      dispatch(updateError(data.message))
+    }
+    dispatch(updateSuccess(data));
+    setSuccessUpdate(true);
+   } catch(error){
+     dispatch(updateError(error.message));
+   }
+  }
   
   return (
     <div className='mx-auto p-3 max-w-lg'>
       <h1 className='font-semibold text-center text-3xl my-7'>Profile</h1>
-      <form className='mx-auto flex flex-col max-w-lg gap-4'>
+      <form onSubmit={handleSubmit} className='mx-auto flex flex-col max-w-lg gap-4'>
         <input onChange={(e)=>setFile(e.target.files[0])} hidden type='file' ref={fileRef} accept='image/*' />
         <img onClick={()=>fileRef.current.click()} className='mx-auto rounded-full h-24 w-24 object-cover cursor-pointer self-center mt-2' src={formData.avatar || currentUser.avatar} />
 
@@ -65,15 +94,16 @@ export default function Profile() {
           }
         </p>
 
-        <input type='text' placeholder='username' id="username" className='rounded-lg p-3' />
-        <input type='text' placeholder='email' id="email" className='rounded-lg p-3 ' />
-        <input type='password' placeholder='password' id="password" className='rounded-lg p-3' />
+        <input type='text'  onChange={handleChange} defaultValue={currentUser.username} placeholder='username' id="username" className='rounded-lg p-3' />
+        <input type='text' onChange={handleChange} defaultValue={currentUser.email} placeholder='email' id="email" className='rounded-lg p-3 ' />
+        <input type='password' onChange={handleChange} placeholder='password' id="password" className='rounded-lg p-3' />
         <button className='bg-slate-700 p-3 rounded-lg hover:opacity-80 text-white cursor-pointer disabled:opacity-70 uppercase'>Update</button>
       </form>
       <div className='flex justify-between mt-5'>
         <span className='text-red-700 cursor-pointer'>Delete account</span>
         <span className='text-red-700 cursor-pointer'>Sign out</span>
       </div>
+      <p className='text-green-700'>{successUpdate ? "User is updated successfully!" : ""}</p>
     </div>
   )
 }
