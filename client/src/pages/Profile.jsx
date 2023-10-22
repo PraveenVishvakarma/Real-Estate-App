@@ -6,7 +6,7 @@ import {getDownloadURL, getStorage, uploadBytesResumable} from 'firebase/storage
 import { app } from '../firebase';
 import { ref } from 'firebase/storage';
 import {  useDispatch } from 'react-redux';
-import { updateError, updateStart, updateSuccess } from '../redux/user/userSlice';
+import { SignOutUserSuccess, deleteUserSuccess, updateError, updateStart, updateSuccess } from '../redux/user/userSlice';
 
 
 
@@ -78,6 +78,18 @@ export default function Profile() {
      dispatch(updateError(error.message));
    }
   }
+
+  const handleDelete=async ()=>{
+    const res=await fetch(`/api/user/delete/${currentUser._id}`,{
+      method:"DELETE",
+      headers:{
+        "Content-Type":"application/json"
+      },
+    });
+    const data= await res.json();
+    dispatch(deleteUserSuccess());
+    console.log(data);
+  }
   
   return (
     <div className='mx-auto p-3 max-w-lg'>
@@ -100,8 +112,10 @@ export default function Profile() {
         <button className='bg-slate-700 p-3 rounded-lg hover:opacity-80 text-white cursor-pointer disabled:opacity-70 uppercase'>Update</button>
       </form>
       <div className='flex justify-between mt-5'>
-        <span className='text-red-700 cursor-pointer'>Delete account</span>
-        <span className='text-red-700 cursor-pointer'>Sign out</span>
+        <span onClick={handleDelete} className='text-red-700 cursor-pointer'>Delete account</span>
+        <span onClick={()=>{
+          dispatch(SignOutUserSuccess());
+        }} className='text-red-700 cursor-pointer'>Sign out</span>
       </div>
       <p className='text-green-700'>{successUpdate ? "User is updated successfully!" : ""}</p>
     </div>
