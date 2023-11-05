@@ -56,3 +56,15 @@ export const getUserListing=async(req, res, next)=>{
         next(errorHandler(401,'You can access only your listing!'));
     }
 }
+
+export const deleteUserListing=async(req, res, next)=>{
+    if(req.user.id !== req.params.id) return next(errorHandler(401, "You can only delete yourself"));
+    try{
+        await Listing.findByIdAndDelete(req.params.id);
+        res.status(200).json("Listing has been deleted successfully! ");
+
+    } catch(error){
+        next(error);
+    }
+
+}

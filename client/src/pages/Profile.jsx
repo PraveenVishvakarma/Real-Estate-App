@@ -20,6 +20,10 @@ export default function Profile() {
   const [formData, setFormData]=useState({});
   const dispatch=useDispatch();
   const[successUpdate, setSuccessUpdate]=useState(false);
+  const [getListingError, setGetListingError]=useState(false);
+  const [listings, setListings]=useState([]);
+
+  console.log(listings);
 
   //firebase storage
       //allow read;
@@ -91,6 +95,30 @@ export default function Profile() {
     dispatch(deleteUserSuccess());
     console.log(data);
   }
+
+  const handleListing=async ()=>{
+    try{
+      const res= await fetch(`/api/user/listings/${currentUser._id}`,{
+        method:"GET",
+        headers:{
+          "Content-Type":"application/json"
+        },
+      });
+      const data=await res.json();
+      if(data.success===false){
+        setGetListingError(data.message);
+        return;
+      }
+      setListings(data);
+    }
+    catch(error){
+       setGetListingError(error.message);
+    }
+  }
+
+  const handleDeleteListing=()=>{
+
+  }
   
   return (
     <div className='mx-auto p-3 max-w-lg'>
@@ -123,6 +151,29 @@ export default function Profile() {
         }} className='text-red-700 cursor-pointer'>Sign out</span>
       </div>
       <p className='text-green-700'>{successUpdate ? "User is updated successfully!" : ""}</p>
+
+      <button onClick={handleListing} className='text-green-700 uppercase w-full' type='button'>Show Listings</button>
+
+
+      {listings && listings.length>0 && 
+      <div className='flex flex-col gap-4'>
+        <h1 className='text-center text-2xl font-semibold mt-7'>Your Listings</h1>
+        {listings.map((listing)=>(
+      <div key={listing._id} className='flex justify-between border rounded-lg p-3 items-center'>
+        <Link to={`/listing/${listing._id}`}>
+        <img className='w-20 h-20 object-contain' src={listing.imageUrls[0]} />
+        </Link>
+        <Link to={`/listing/${listing._id}`} className='flex-1 ml-3 hover:underline'>
+          <p className='text-slate-700 font-semibold'>{listing.name}</p>
+        </Link>
+        <div className='flex flex-col'>
+          <button onClick={handleDeleteListing} type='' className='text-red-700'>Delete</button>
+          <button className='text-green-700'>Edit</button>
+        </div>
+        </div> ))}
+      </div>
+      
+      }
     </div>
   )
 }
