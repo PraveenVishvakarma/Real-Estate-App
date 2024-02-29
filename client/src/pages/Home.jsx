@@ -45,7 +45,7 @@ export default function Home() {
         place with ease
         </h1>
         <div className='text-gray-400 text-xs sm:text-sm'>
-          Rohit Estate is the best place to find your next perfect place to live.
+          Praveen Estate is the best place to find your next perfect place to live.
           <br />
           We have a wide range of properties for you to choose from.
         </div>
